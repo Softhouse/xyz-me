@@ -2,14 +2,18 @@ var path = require('path');
 var express = require('express');
 var app = express();
 
-// You probably want to change 'dist/' to '../dist/' for production
-app.use('/', express.static(path.join(__dirname, 'dist/')));
+function cacheBusting(req, res, next) {
+    res.header('Cache-Control', 'must-revalidate,no-cache,no-store');
+    next();
+}
 
-app.get('/kalle', function(req, res) {
-    console.log("ASD");
+app.use(cacheBusting);
 
-    res.send('Your email is: ' + req.headers['x-forwarded-email'] + ' and your accname: ' + req.headers['x-forwarded-user']);
+app.get('/', function (req, res) {
+    res.send({'email': req.headers['x-forwarded-email'], 'user': req.headers['x-forwarded-user']});
 });
+
+app.use('/docs', express.static(path.join(__dirname, 'docs/')));
 
 var server = app.listen(9000, function () {
     console.log('Server started: http://localhost:%s/', server.address().port);
